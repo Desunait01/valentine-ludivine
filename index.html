@@ -74,6 +74,14 @@
             min-height: 60px;
         }
 
+        /* Wrapper to keep No button in its initial position */
+        .btn-no-wrapper {
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
         .btn {
             padding: 15px 40px;
             font-size: 1.2rem;
@@ -100,8 +108,9 @@
         .btn-no {
             background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
             color: white;
-            position: absolute;
+            position: fixed;
             transition: left 0.2s ease-out, top 0.2s ease-out;
+            z-index: 25;
         }
 
         /* Success message */
@@ -202,7 +211,9 @@
             <h1 class="question">Ludivine, will you be my Valentine?</h1>
             <div class="buttons-container" id="buttonsContainer">
                 <button class="btn btn-yes" id="yesBtn">Yes</button>
-                <button class="btn btn-no" id="noBtn">No</button>
+                <div class="btn-no-wrapper">
+                    <button class="btn btn-no" id="noBtn">No</button>
+                </div>
             </div>
         </div>
         
@@ -220,6 +231,10 @@
         const buttonsContainer = document.getElementById('buttonsContainer');
         const confettiContainer = document.getElementById('confettiContainer');
         const backgroundHearts = document.getElementById('backgroundHearts');
+        const btnNoWrapper = document.querySelector('.btn-no-wrapper');
+
+        // Track if No button has started moving
+        let noButtonMoving = false;
 
         // Create background floating hearts
         function createBackgroundHearts() {
@@ -245,6 +260,8 @@
 
         // Move No button to random position
         function moveNoButton() {
+            noButtonMoving = true;
+            
             const viewportWidth = window.innerWidth;
             const viewportHeight = window.innerHeight;
             
@@ -258,7 +275,7 @@
                 
                 if (previousPosition.x !== null) {
                     distance = Math.sqrt(
-                        Math.pow(newX - previousPosition.x, 2) + 
+                        Math.pow(newX - previousPosition.x, 2) +
                         Math.pow(newY - previousPosition.y, 2)
                     );
                 } else {
@@ -279,14 +296,20 @@
             const noBtnRect = noBtn.getBoundingClientRect();
             const noBtnCenterX = noBtnRect.left + noBtnRect.width / 2;
             const noBtnCenterY = noBtnRect.top + noBtnRect.height / 2;
-            
+
             const distance = Math.sqrt(
-                Math.pow(e.clientX - noBtnCenterX, 2) + 
+                Math.pow(e.clientX - noBtnCenterX, 2) +
                 Math.pow(e.clientY - noBtnCenterY, 2)
             );
-            
-            // Move when cursor is within 100px
-            if (distance < 100) {
+
+            // Move when cursor is within 100px and button hasn't moved yet this session
+            if (distance < 100 && !noButtonMoving) {
+                // Store initial position for reference
+                const wrapperRect = btnNoWrapper.getBoundingClientRect();
+                previousPosition = {
+                    x: wrapperRect.left,
+                    y: wrapperRect.top
+                };
                 moveNoButton();
             }
         });
